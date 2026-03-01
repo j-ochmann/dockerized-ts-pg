@@ -1,0 +1,25 @@
+services:
+  api:
+    build: .
+    container_name: dockerized-ts-api
+    restart: always
+    environment:
+      - DATABASE_URL=${COMPOSE_URL}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+  db:
+    image: postgres:16-alpine
+    container_name: dockerized-ts-db
+    restart: always
+    ports:
+      - "5432:5432" # V produkci zavřete!!!
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes: # Persistentní úložiště
+      - pgdata:/var/lib/postgresql/data
+volumes:
+  pgdata:

@@ -1,0 +1,22 @@
+# Build fáze
+FROM node:20-slim AS builder
+WORKDIR /app
+# Instalace systémových závislostí pro Prismu
+RUN apt-get update -y && apt-get install -y openssl ca-certificates
+COPY package*.json ./
+COPY prisma ./prisma/
+RUN npm install
+RUN npx prisma generate
+COPY . .
+RUN npm run build
+# Produkční fáze
+FROM node:20-slim
+WORKDIR /app
+# I v produkci je potřeba openssl pro běh binárky Prismy
+RUN apt-get update -y && apt-get install -y openssl ca-certificates
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/prisma ./prisma
+EXPOSE 3000
+CMD ["npm", "run", "start"]
